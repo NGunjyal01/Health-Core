@@ -8,38 +8,42 @@ import "react-phone-number-input/style.css";
 import CustomFormField from "../CustomFormField"
 import SubmitButton from "../SubmitButton"
 import { useState } from "react"
+import { createUser } from "@/lib/actions/patient.actions"
+import { useRouter } from "next/navigation"
+import { UserFormValidation } from "@/lib/validation"
+import { FormFieldType } from "@/constans"
 
-const formSchema = z.object({
-    username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-    }),
-})
-export const FormFieldType = {
-    INPUT: "input",
-    TEXTAREA: "textarea",
-    PHONE_INPUT: "phoneInput",
-    CHECKBOX: "checkbox",
-    DATE_PICKER: "datePicker",
-    SELECT: "select",
-    SKELETON: "skeleton",
-};
+const formSchema = UserFormValidation;
+
  
 const PatientForm = ()=> {
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
-    // 1. Define your form.
+
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            username: "",
+            name: "",
+            email: "",
+            phone: "",
         },
     })
  
-    // 2. Define a submit handler.
-    function onSubmit(values) {
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
-        console.log(values)
+    async function onSubmit({name,email,phone}) {
+        console.log('ok')
+        setIsLoading(true);
+        try{
+            const userData = {name,email,phone};
+            const newUser = await createUser(userData);
+            if (newUser) {
+                router.push(`/patients/${newUser.$id}/register`);
+            }
+        }catch(error){
+            console.log("aa gya error")
+            console.log(error);
+        }
     }
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
